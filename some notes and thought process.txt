@@ -1,0 +1,51 @@
+age : continuous
+sex : categorical
+cp : categorical
+trestbps : continuous 
+chol : continuous 
+fbs : categorical
+restecg : categorical
+thalach : continous
+exang : categorical
+oldpeak : continuous
+slope : categorical 
+ca : categorical
+thal : categorical
+
+
+8 categorical 
+5 continous 
+
+num : categorial (predicted value)
+
+
+-> once it has been determined, we determine the best the best split
+
+-------------------------------------------------------
+
+we are looking to make a prediction on the value num : whether 0 or something else
+
+2nd step : choosing the best split 
+
+we have two ways :
+if categorical -> gini index
+if continuous -> squared error (distance from the actual value)
+
+okay pour definir les branches -> 
+
+i can take the split and create Nodes at each branch of the node. 
+
+then fill the population of eachNode
+
+
+        print("split used -> " + nodeAttrSplit)
+
+
+
+
+
+
+
+
+
+
