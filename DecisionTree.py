@@ -12,7 +12,6 @@ class DecisionTree:
     
     #class variable used to keep track of the trees
     counter = 0
-
     '''
     this class represents the decision tree class. 
     
@@ -34,9 +33,8 @@ class DecisionTree:
         
         #creation of the trainingSet and TestSet
         #only making a list of the indexes, not the whole members. 
-        
         self.indexList = [i for i in range(self.numberOfData)]
-        self.trainingIndexList = random.sample(self.indexList, self.trainingQty)
+        self.trainingIndexList = random.choices(self.indexList, k = self.trainingQty)
         self.testIndexList = list(set(self.indexList).difference(set(self.trainingIndexList)))
         
        
@@ -55,14 +53,48 @@ class DecisionTree:
         self.initializeMainNode(self.mainNode)
         self.getBestPossibleSplitFromPossibleSplits(self.mainNode)
         
+        self.terminalNodes = 0
         
         self.createBranches(self.mainNode)
         
         self.index = DecisionTree.counter
         DecisionTree.counter += 1
         
-        self.terminalNodes = 0
     
+    def goThroughNodes(self, node, index):
+        
+        #1st -> see if this node is a terminal Node
+        if node.isTerminal:
+            prediction = node.predictionAtThisNode
+            return prediction
+            
+        #if it is not a terminal node, find the category where our member belongs and recursively look into this node
+        else:
+            split = node.bestCovariate
+            member = self.dataSet.loc[index]
+            
+            memberValueForCovariate = member[split]
+            
+            
+            if memberValueForCovariate == "?":
+                branch = self.getNodeWithMostPeople(node)  
+                return self.goThroughNodes(node.branches[branch], index)
+        
+            #if continuous
+            if self.dataTypeClassifier[split] == 1:
+                if memberValueForCovariate >= node.split[split][0]:
+                    return self.goThroughNodes(node.branches["left"], index)
+                else:
+                    return self.goThroughNodes(node.branches["right"] , index)
+            
+            #categorical
+            else:
+                for branch in node.branches:
+                    #if the member value = the name of the branch, it is part of it. 
+                    if memberValueForCovariate == branch:
+                        return self.goThroughNodes(node.branches[memberValueForCovariate] , index)   
+            
+                        
     '''
     we initialize the main node by defining the best split and its corresponding 
     prediction as well as its remaining splits. we will then use the recursion function
@@ -73,7 +105,7 @@ class DecisionTree:
         node.populationAtNode = self.trainingIndexList
         
         #initialize prediction
-        node.predictionAtThisNode = node.getPrediction(self.typeOfTree, self.attrToPredict, self.dataSet)
+        node.predictionAtThisNode[self.attrToPredict] = node.getPrediction(self.typeOfTree, self.attrToPredict, self.dataSet)
         
         #remainingSplits
         for possibleSplit in self.dataSet:
@@ -100,18 +132,23 @@ class DecisionTree:
             #as there are only left and right branches possible with continuous branches
             node.branches["left"] = Node()
             node.branches["left"].remainingSplits = list(node.remainingSplits)
+            node.branches["left"].nodeCharacteristics = dict(node.nodeCharacteristics)
             
             node.branches["right"] = Node()
             node.branches["right"].remainingSplits = list(node.remainingSplits)
+            node.branches["right"].nodeCharacteristics = dict(node.nodeCharacteristics)
             
             
             #populate the population at each branch with the corresponding indexes.
             for index in node.populationAtNode:
                 member = self.dataSet.loc[index]
                 if member[nodeAttrSplit] >= node.split[nodeAttrSplit][0]:
+                    
                     node.branches["left"].populationAtNode[index] = self.dataSet.loc[index][self.attrToPredict]
+                    node.branches["left"].nodeCharacteristics[nodeAttrSplit] = "bigger than"
                 else:
                     node.branches["right"].populationAtNode[index] = self.dataSet.loc[index][self.attrToPredict]
+                    node.branches["right"].nodeCharacteristics[nodeAttrSplit] = "smaller than"
             
             
         #if the data is categorical
@@ -126,31 +163,25 @@ class DecisionTree:
                     
                     #give it its remaining splits from the node
                     node.branches[values].remainingSplits = list(node.remainingSplits)
+                    node.branches[values].nodeCharacteristics = dict(node.nodeCharacteristics)
+                    node.branches[values].nodeCharacteristics[nodeAttrSplit] = values
             
             
             #populate the population at each branch with the corresponding indexes.
             for index in node.populationAtNode:
                 member = self.dataSet.loc[index]
                 valueAtCovariate = member[nodeAttrSplit]
-                
-                
+
                 #if the value is unknown, used a simplistic approach where i 
                 #send the index to the node with the most population. 
                 if valueAtCovariate == "?":
-                    keyWithMostPeople = ""
-                    length = 0
-                    
-                    #getting the branch with the biggest population
-                    for key in node.branches:
-                        temp = len(node.branches[key].populationAtNode)
-                        keyWithMostPeople = key if temp > length else keyWithMostPeople      
+                    keyWithMostPeople = self.getNodeWithMostPeople(node)      
                         
                     #adding that index into the branch population
                     node.branches[keyWithMostPeople].populationAtNode[index] = self.dataSet.loc[index][self.attrToPredict]
                 else:
                     #proceed as usual if not an unkonwn value. 
                     node.branches[valueAtCovariate].populationAtNode[index] = self.dataSet.loc[index][self.attrToPredict]
-                
         
         
         #recursive part of the function -> 
@@ -165,7 +196,7 @@ class DecisionTree:
             
             currentNode = node.branches[key]
             
-            currentNode.predictionAtThisNode = currentNode.getPrediction(self.typeOfTree , self.attrToPredict , self.dataSet)
+            currentNode.predictionAtThisNode[self.attrToPredict] = currentNode.getPrediction(self.typeOfTree , self.attrToPredict , self.dataSet)
 
             #initialize the best split for the current node.
             self.getBestPossibleSplitFromPossibleSplits(currentNode)
@@ -175,14 +206,24 @@ class DecisionTree:
                self.createBranches(currentNode)        
             else:
                 #make node a terminal ndoe if stopping criterion is reached. 
-                print("\n<----------------- NEW NODE ---------------->")
-                print(currentNode.predictionAtThisNode)
                 currentNode.isTerminal = True
                 self.terminalNodes += 1
-                print("*********TERMINAL NODE************\n")
+                currentNode.TIndex = self.terminalNodes
                 
         
+    
+    def getNodeWithMostPeople(self, node):
+        keyWithMostPeople = ""
+        length = 0
         
+        #getting the branch with the biggest population
+        for key in node.branches:
+            temp = len(node.branches[key].populationAtNode)
+            keyWithMostPeople = key if temp > length else keyWithMostPeople
+        
+        return keyWithMostPeople
+    
+    
     #now make a method for the gini index
     def measureGiniForCovariate(self, covariate , numberOfDivisions = 5):
         
@@ -223,14 +264,18 @@ class DecisionTree:
                 
                 #calculate the gini index for the left and right brnach
                 
+                
                 #left
                 numberOfPeopleLeft = len(populationLeft)
-                
-                giniLeft = self.giniAtNode(populationLeft , numberOfPeopleLeft)
+                giniLeft = 0
+                if numberOfPeopleLeft != 0:
+                    giniLeft = self.giniAtNode(populationLeft , numberOfPeopleLeft)
                 
                 #right
                 numberOfPeopleRight = len(populationRight)
-                giniRight = self.giniAtNode(populationRight , numberOfPeopleRight)
+                giniRight = 0
+                if numberOfPeopleRight != 0:
+                    giniRight = self.giniAtNode(populationRight , numberOfPeopleRight)
                 
                 #get total gini index for the covariate 
                 GiniWithSplit = giniLeft + giniRight
@@ -270,8 +315,9 @@ class DecisionTree:
             
             for key in branches:
                 population = branches.get(key)
-                giniAtBranch = self.giniAtNode(population , len(population)) 
-                giniIndex += giniAtBranch
+                if len(population) != 0:
+                    giniAtBranch = self.giniAtNode(population , len(population)) 
+                    giniIndex += giniAtBranch
             
             #returning the gini
             return giniIndex
@@ -320,22 +366,30 @@ class DecisionTree:
     '''
     this method is used to tri within the gini indexes in the remaining splits to 
     find what which one would be best for the population
+    
+    
+    reduced Remaining split quantity is set at 80% of the available remainingSplits
+    can be changed
     '''
-    def getBestPossibleSplitFromPossibleSplits(self, node):
+    def getBestPossibleSplitFromPossibleSplits(self, node, percentage = 0.8):
         
         #list that will contain ginis
         giniWithCovariate = {}
         for split in node.remainingSplits:
             giniWithCovariate[split] = self.measureGiniForCovariate(split)
-         
+            
             
         #simple variable to keep track of smallest gini
         covariate = ""
         smallestGini = -1
         g = 0
         
+        #picking at random from the availableSplits to add randomness. 
+        newLength = int(percentage*len(giniWithCovariate))
+        reducedRemainingSplits = random.sample(list(giniWithCovariate), k=newLength)
+        
         #loop through the ginis
-        for ginis in giniWithCovariate:
+        for ginis in reducedRemainingSplits:
             
             '''
             accessing the ginis depends on the nature of the var.

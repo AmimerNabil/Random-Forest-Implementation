@@ -53,6 +53,8 @@ class Node:
         #if value of TIndex = -1, it means that it is not a terminal node. 
         self.TIndex = -1
         
+        self.nodeCharacteristics = {}
+        
         
     '''
     this method is used to get the prediction at the current node. 

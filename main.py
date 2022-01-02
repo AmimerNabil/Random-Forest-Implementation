@@ -6,6 +6,7 @@ Created on Wed Dec 29 13:11:34 2021
 """
 
 import pandas as pd
+import random
 from DecisionTree import DecisionTree as dt
 
 '''
@@ -63,5 +64,27 @@ class RandomForest:
 
 
 decisionTree = dt(dataFrame, dataTypeClassifier, "num")
+sizeOfTestSet = len(decisionTree.testIndexList)
 
+#test with the training index of the random tree
+success = 0
+for i in range(sizeOfTestSet):
+    print("<--------------- new test ( " +str(i)+ ") ---------------->")
+    randomTestIndex = int(random.choice(decisionTree.testIndexList))
+   # print(randomTestIndex)
+    member = dataFrame.loc[randomTestIndex]    
+    actual = member["num"]
+   # print(actual)
+    prediction = decisionTree.goThroughNodes(decisionTree.mainNode, randomTestIndex)
+    print(actual)
+    print(prediction["num"])
+    
+   # print(prediction)
+    if actual == prediction["num"]:
+        success += 1
+        
 
+print("success = " + str(success))
+print("failure = " + str(sizeOfTestSet - success))
+
+    

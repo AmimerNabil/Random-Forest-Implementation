@@ -42,9 +42,19 @@ then fill the population of eachNode
 
 
 
+Tree : 
+
+-every tree has a test set and a training set. 
+if type(prediction) == type(None):
+    print("happened 1")
 
 
+member
 
+                    O
+                   / \
+                  O   O
+                 / \
 
 
 
