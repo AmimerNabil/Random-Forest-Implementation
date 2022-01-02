@@ -8,21 +8,26 @@ import random
 from Node import Node
 
 
-class DecisionTree:    
+class DecisionTree:  
+    """
+    Decision tree class. 
+    """
     
     #class variable used to keep track of the trees
     counter = 0
-    '''
-    this class represents the decision tree class. 
     
-    the original size of the training set is set at 66% but can be modified at will
-    
-    @parameters :
-        dataSet - a pandas DataFrame
-        attrToPredict - the name of the attribute you are trying to predict in your dataFrame
-        trainingProportion - the percentage of the data set that you wish to use as a trainingSet
-    '''
     def __init__(self , dataSet, DTC, attrToPredict, trainingProportion=0.66):
+        """
+        this class represents the decision tree class. 
+        the original size of the training set is set at 66% but can be modified at will
+        
+        @parameters :
+            dataSet -> a pandas DataFrame
+            
+            attrToPredict -> the name of the attribute you are trying to predict in your dataFrame
+            
+            trainingProportion -> the percentage of the data set that you wish to use as a trainingSet
+        """
         
         #initialization of the basic instance variables. 
         self.dataSet = dataSet #data frame containing all the data
@@ -61,7 +66,22 @@ class DecisionTree:
         DecisionTree.counter += 1
         
     
-    def goThroughNodes(self, node, index):
+    def goThroughNodes(self, node, member):
+        """
+            This method is used to make a prediction given the index of an individual. 
+            If given the index of a member of the training set, it will give the right 
+            value as the model was created with it. 
+            
+            However giving it the index value of a member in the test set (out of bag)
+            will give you a prediction of his state. We can then compare the actual value 
+            given and the prediction to measure the accuracy of our decision tree. 
+       
+            #params :
+                node -> current node where we test its split in search for the terminal node.
+                
+                member -> individual or sample from the population for which we would like to konw
+                the prediction. 
+        """
         
         #1st -> see if this node is a terminal Node
         if node.isTerminal:
@@ -71,36 +91,40 @@ class DecisionTree:
         #if it is not a terminal node, find the category where our member belongs and recursively look into this node
         else:
             split = node.bestCovariate
-            member = self.dataSet.loc[index]
-            
+          
             memberValueForCovariate = member[split]
             
-            
+            #same handling as when we measure the gini index, we simply go through the node that has the most population
+            #there is a lot of place for improvement in the way we deal with unknown values. 
             if memberValueForCovariate == "?":
                 branch = self.getNodeWithMostPeople(node)  
-                return self.goThroughNodes(node.branches[branch], index)
+                return self.goThroughNodes(node.branches[branch], member)
         
             #if continuous
             if self.dataTypeClassifier[split] == 1:
                 if memberValueForCovariate >= node.split[split][0]:
-                    return self.goThroughNodes(node.branches["left"], index)
+                    return self.goThroughNodes(node.branches["left"], member)
                 else:
-                    return self.goThroughNodes(node.branches["right"] , index)
+                    return self.goThroughNodes(node.branches["right"] , member)
             
             #categorical
             else:
                 for branch in node.branches:
                     #if the member value = the name of the branch, it is part of it. 
                     if memberValueForCovariate == branch:
-                        return self.goThroughNodes(node.branches[memberValueForCovariate] , index)   
+                        return self.goThroughNodes(node.branches[memberValueForCovariate] , member)   
             
-                        
-    '''
-    we initialize the main node by defining the best split and its corresponding 
-    prediction as well as its remaining splits. we will then use the recursion function
-    "createBranch()" to compute the rest of the tree. 
-    '''
+                
+            
     def initializeMainNode(self , node):
+        """
+        we initialize the main node by defining the best split and its corresponding 
+        prediction as well as its remaining splits. we will then use the recursion function
+        "createBranch()" to compute the rest of the tree. 
+      
+        @params:
+            node -> main node that we initialize
+        """
         #population at the node
         node.populationAtNode = self.trainingIndexList
         
@@ -113,16 +137,22 @@ class DecisionTree:
                 node.remainingSplits.append(possibleSplit)
             
             
-    '''
-    this method creates the branches for a specific node. 
-    It is a recursive function and the stopping criterion used is 
-    the size of the population in the node. 
-    
-    -> if more than 30, populate branches
-    -> else stop here and make this a terminal node. 
-    
-    '''
-    def createBranches(self, node, StoppingCriterionPopulation = 30):
+    def createbranches(self, node, StoppingCriterionPopulation = 30):
+        """
+        this method creates the branches for a specific node. 
+        It is a recursive function and the stopping criterion used is 
+        the size of the population in the node. 
+        
+        -> if more than 30, populate branches
+        
+        -> else stop here and make this a terminal node. 
+        
+        @params:
+            node -> base node on which we determine the population of its branhces. 
+        
+            StoppingCriterionPopulation -> we use the length of the population of the node as 
+            a stopping criterion. It is by default set at 30. 
+        """
         #attribute used for the split in this node
         nodeAttrSplit = node.bestCovariate
 
@@ -130,6 +160,8 @@ class DecisionTree:
         if self.dataTypeClassifier[nodeAttrSplit] == 1:
             
             #as there are only left and right branches possible with continuous branches
+          
+            #use casting to make a copy of the lists/dicts, otherwise it would create a pointer to the same memory location. 
             node.branches["left"] = Node()
             node.branches["left"].remainingSplits = list(node.remainingSplits)
             node.branches["left"].nodeCharacteristics = dict(node.nodeCharacteristics)
@@ -211,8 +243,13 @@ class DecisionTree:
                 currentNode.TIndex = self.terminalNodes
                 
         
-    
     def getNodeWithMostPeople(self, node):
+        """
+        method to get the node with the most people in it. 
+        
+        @params:
+            node -> node in which we go through the branch lenghts.
+        """
         keyWithMostPeople = ""
         length = 0
         
@@ -224,8 +261,35 @@ class DecisionTree:
         return keyWithMostPeople
     
     
-    #now make a method for the gini index
     def measureGiniForCovariate(self, covariate , numberOfDivisions = 5):
+        """
+            This method is used to measure the gini index for a covariate. 
+            
+            it is divided into steps : 
+                
+                1. look at the type of covariate that we have on hand. 
+                2. if continuous : 
+                    2.0 -> create branch left and right in the node as there are only two ways possible
+                    
+                    2.1 -> split will take the form (x >= split) or (x < split)
+                    
+                    2.2 -> we need to find the best split within the possible continuous values. 
+                    
+                    2.3 -> in this implementation we proceed in a naive way by trying out a certain number of splits within
+                    the continuous value. 
+                    
+                    2.4 -> store the gini given by each split and choose the smallest one after all computations. 
+                3. if categorical : 
+                    
+                    3.0 -> create branches according to the posible values of the categorical covariate. 
+                    
+                    3.1 -> go through each member of the population at the node and place it in the corresponding 
+                    branch. 
+                    
+                    3,2 -> measure the gini at each branch and add them up. 
+                    
+                4. return gini for this covariate. 
+        """
         
         type = self.dataTypeClassifier[covariate]
         
@@ -289,7 +353,12 @@ class DecisionTree:
             return bestSplit
         
         else:        
-            #dictionnary that will contain a list of every member that has the same value for that covariate. 
+            #dictionnary that will contain a nested dict of every member that has the same value for that covariate. 
+
+            #structure -> dict[key] = {[index], value of attribute we are trying to predict.}
+                # key = common value
+                # index = index of sample
+                # index is linked with value of attr we are trying to predict. 
             branches = {}
             
             #for this implementation of the random tree, we do not create seperate categories for missing values.
@@ -323,11 +392,14 @@ class DecisionTree:
             return giniIndex
     
     
-    '''
-    Get the branch with the most element
-    This method is only used for the measurement of the best possible split.
-    '''
     def getBranchWithMostElements(self, dictBranch):
+        """
+        Get the branch with the most element
+        This method is only used for the measurement of the best possible split.
+        
+        @params:
+            dictBranch -> dictionnary at banch
+        """
         keyWithMostElements = ""
         numberOfElements = 0;
         
@@ -339,16 +411,22 @@ class DecisionTree:
     
 
 
-    '''
-    this method is used to get the gini index at a specific Node. 
-    
-    We calculate the Gini using the formula ->
-    Gini at Node = 1 - (probability of yes)^2 - (probability of no)^2
-    
-    It is a weighted index and so we multiply it with the length of the population
-    sample at the node. 
-    '''
     def giniAtNode(self, population , numberOfPeopleAtNode):
+        """
+        this method is used to get the gini index at a specific Node. 
+        
+        We calculate the Gini using the formula ->
+        Gini at Node = 1 - (probability of yes)^2 - (probability of no)^2
+        
+        It is a weighted index and so we multiply it with the length of the population
+        sample at the node. 
+        
+        @params:
+            population -> population dictionnary {index , value of attr we are trying to predict}
+            used to get the gini index. 
+            
+            numberOfPeopleAtNode -> the length of the population
+        """
         peopleYes = 0;
         for key in population:
             if population[key] != 0:
@@ -363,19 +441,29 @@ class DecisionTree:
         return gini
         
     
-    '''
-    this method is used to tri within the gini indexes in the remaining splits to 
-    find what which one would be best for the population
-    
-    
-    reduced Remaining split quantity is set at 80% of the available remainingSplits
-    can be changed
-    '''
     def getBestPossibleSplitFromPossibleSplits(self, node, percentage = 0.8):
+        """
+        this method is used to tri within the gini indexes in the remaining splits to 
+        find what which one would be best for the population
+        
+        
+        reduced Remaining split quantity is set at 80% of the available remainingSplits
+        can be changed
+        
+        @params:
+            node -> node from which we want to get the best split
+            
+            percentage -> ammount of splits we want to keep from the remaining Splits
+        """
         
         #list that will contain ginis
         giniWithCovariate = {}
-        for split in node.remainingSplits:
+        
+        #picking at random from the availableSplits to add randomness. 
+        newLength = int(percentage*len(node.remainingSplits))
+        reducedRemainingSplits = list(random.sample(node.remainingSplits, newLength))
+        
+        for split in reducedRemainingSplits:
             giniWithCovariate[split] = self.measureGiniForCovariate(split)
             
             
@@ -384,9 +472,6 @@ class DecisionTree:
         smallestGini = -1
         g = 0
         
-        #picking at random from the availableSplits to add randomness. 
-        newLength = int(percentage*len(giniWithCovariate))
-        reducedRemainingSplits = random.sample(list(giniWithCovariate), k=newLength)
         
         #loop through the ginis
         for ginis in reducedRemainingSplits:
@@ -401,8 +486,8 @@ class DecisionTree:
                 [0] -> best split within continuous values.
                 [1] -> gini associated with the the split.
             
-            
             '''
+            
             if self.dataTypeClassifier[ginis] == 0:
                 g = giniWithCovariate[ginis]
             else:

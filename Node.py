@@ -5,18 +5,18 @@ Created on Thu Dec 30 18:16:17 2021
 @author: Nabil Amimer
 """
 
-'''
-This class represents each Node that our decision tree will have
-
-Trying to keep this as simple as possible, we will leave it to only a few 
-instance variables
-
-1. a list of its branches (Link to other nodes)
-2. the split decided at this node. 
-3. the population at this node
-4. and the prediction at that node if it is a terminal node
-'''
 class Node:
+    """
+    This class represents each Node that our decision tree will have
+    
+    Trying to keep this as simple as possible, we will leave it to only a few 
+    instance variables
+    
+    1. a list of its branches (Link to other nodes)
+    2. the split decided at this node. 
+    3. the population at this node
+    4. and the prediction at that node if it is a terminal node
+    """
     
     counter = 0
     
@@ -56,20 +56,20 @@ class Node:
         self.nodeCharacteristics = {}
         
         
-    '''
-    this method is used to get the prediction at the current node. 
-    
-    it splits the prediction calculation in two possibilities :
-        
-        1. regression tree 
-        
-            returns the average of all the population in the tree
-        
-        2. classification tree
-        
-            returns the class with the msot population in it. 
-    '''
     def getPrediction(self, typeOfTree, attrToPredict, dataSet):
+        """
+        this method is used to get the prediction at the current node. 
+        
+        it splits the prediction calculation in two possibilities :
+            
+            1. regression tree 
+            
+                returns the average of all the population in the tree
+            
+            2. classification tree
+            
+                returns the class with the msot population in it. 
+        """
         
         #regression
         if typeOfTree == 1:
