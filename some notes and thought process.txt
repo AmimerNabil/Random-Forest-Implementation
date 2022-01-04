@@ -59,3 +59,57 @@ member
 
 
 
+>keeping this code in case
+
+
+
+decisionTree = dt(dataFrame, dataTypeClassifier, "num")
+sizeOfTestSet = len(decisionTree.testIndexList)
+
+#test with the training index of the random tree
+success = 0
+for i in range(sizeOfTestSet):
+    print("<--------------- new test (" +str(i)+ ") ---------------->")
+    randomTestIndex = int(random.choice(decisionTree.testIndexList))
+   # print(randomTestIndex)
+    member = dataFrame.loc[randomTestIndex]    
+    actual = member["num"]
+   # print(actual)
+    prediction = decisionTree.goThroughNodes(decisionTree.mainNode, member)
+    print(actual)
+    print(prediction["num"])
+    
+   # print(prediction)
+    if actual == prediction["num"]:
+        success += 1
+        
+
+failure = sizeOfTestSet - success
+
+percentageSuccess = (success/sizeOfTestSet)*100
+percentageSuccess = round(percentageSuccess , 2)
+
+print("success = " + str(success))
+print("failure = " + str(failure))
+print("percentage success = " + str(percentageSuccess) + "%")
+
+
+    
+
+
+
+random forest -> 
+
+1st thing to do is make a method that create the different trees. 
+
+
+
+
+
+
+
+
+
+
+
+

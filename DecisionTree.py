@@ -16,7 +16,7 @@ class DecisionTree:
     #class variable used to keep track of the trees
     counter = 0
     
-    def __init__(self , dataSet, DTC, attrToPredict, trainingProportion=0.66):
+    def __init__(self , dataSet, DTC, attrToPredict, trainingProportion):
         """
         this class represents the decision tree class. 
         the original size of the training set is set at 66% but can be modified at will
@@ -26,12 +26,14 @@ class DecisionTree:
             
             attrToPredict -> the name of the attribute you are trying to predict in your dataFrame
             
+            DTC -> datatypeclassifier that contains information on the type of cavariate in the dataSet
+
             trainingProportion -> the percentage of the data set that you wish to use as a trainingSet
         """
         
         #initialization of the basic instance variables. 
         self.dataSet = dataSet #data frame containing all the data
-        self.numberOfData = len(self.dataSet)
+        self.numberOfData = len(self.dataSet) 
         self.trainingQty = int(self.numberOfData*trainingProportion)
         self.testQty = self.numberOfData - self.trainingQty
         self.attrToPredict = attrToPredict
@@ -39,8 +41,8 @@ class DecisionTree:
         #creation of the trainingSet and TestSet
         #only making a list of the indexes, not the whole members. 
         self.indexList = [i for i in range(self.numberOfData)]
-        self.trainingIndexList = random.choices(self.indexList, k = self.trainingQty)
-        self.testIndexList = list(set(self.indexList).difference(set(self.trainingIndexList)))
+        self.trainingIndexList = random.choices(self.indexList, k = self.trainingQty) # in bag indexes
+        self.testIndexList = list(set(self.indexList).difference(set(self.trainingIndexList))) # out of bag indexes
         
        
         self.testIndexList.sort()
@@ -137,7 +139,7 @@ class DecisionTree:
                 node.remainingSplits.append(possibleSplit)
             
             
-    def createbranches(self, node, StoppingCriterionPopulation = 30):
+    def createBranches(self, node, StoppingCriterionPopulation = 30):
         """
         this method creates the branches for a specific node. 
         It is a recursive function and the stopping criterion used is 
