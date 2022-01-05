@@ -8,7 +8,7 @@ I got interested in this subject right after my first class of probability and s
 ### Random Forests ###
 Random Forests are a machine learning tool used for both classification and regression problems. They are currently unexcelled in accuracy among current algorithms.  This forest is built using many classification tree which helps saves us from the task of pruning each tree. 
 
-for more information and details on RF : [Random Forest Documentation](https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
+for more information and details on RF : [Random Forest Documentation](https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm)
 
 ##### details of implementation ->
 The random forest implemented follows the CART protocol for random forest creation.  We first split the data into a boostrap dataset by randomly selecting _with replacement_ data from the dataset and then creating the branches of the tree by selecting the best split. 
