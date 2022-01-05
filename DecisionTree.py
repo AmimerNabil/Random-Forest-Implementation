@@ -41,6 +41,8 @@ class DecisionTree:
         #creation of the trainingSet and TestSet
         #only making a list of the indexes, not the whole members. 
         self.indexList = [i for i in range(self.numberOfData)]
+        
+        #we let the training indexes be random with replacement. 
         self.trainingIndexList = random.choices(self.indexList, k = self.trainingQty) # in bag indexes
         self.testIndexList = list(set(self.indexList).difference(set(self.trainingIndexList))) # out of bag indexes
         
@@ -83,6 +85,9 @@ class DecisionTree:
                 
                 member -> individual or sample from the population for which we would like to konw
                 the prediction. 
+                
+            Returns : 
+                the prediction as a dictionary [key = name of attribute] = [value = value of attribute predicted.]
         """
         
         #1st -> see if this node is a terminal Node
@@ -124,8 +129,13 @@ class DecisionTree:
         prediction as well as its remaining splits. we will then use the recursion function
         "createBranch()" to compute the rest of the tree. 
       
-        @params:
+        Parameters
+        ----------
             node -> main node that we initialize
+            
+        Returns
+        -------
+            none
         """
         #population at the node
         node.populationAtNode = self.trainingIndexList
@@ -139,7 +149,7 @@ class DecisionTree:
                 node.remainingSplits.append(possibleSplit)
             
             
-    def createBranches(self, node, StoppingCriterionPopulation = 30):
+    def createBranches(self, node, StoppingCriterionPopulation = 0.1):
         """
         this method creates the branches for a specific node. 
         It is a recursive function and the stopping criterion used is 
@@ -154,6 +164,11 @@ class DecisionTree:
         
             StoppingCriterionPopulation -> we use the length of the population of the node as 
             a stopping criterion. It is by default set at 30. 
+            
+        Returns
+        -------
+            none
+            
         """
         #attribute used for the split in this node
         nodeAttrSplit = node.bestCovariate
@@ -227,7 +242,6 @@ class DecisionTree:
             
             we initialize the prediction at each node, the population, and whether it is a terminal node. 
             '''
-            
             currentNode = node.branches[key]
             
             currentNode.predictionAtThisNode[self.attrToPredict] = currentNode.getPrediction(self.typeOfTree , self.attrToPredict , self.dataSet)
@@ -236,7 +250,9 @@ class DecisionTree:
             self.getBestPossibleSplitFromPossibleSplits(currentNode)
             
             #verification of the stopping criterion.
-            if len(currentNode.populationAtNode) >= StoppingCriterionPopulation:
+            minPopulation = int(StoppingCriterionPopulation*len(self.mainNode.populationAtNode))
+            print(minPopulation)
+            if len(currentNode.populationAtNode) >= minPopulation and len(currentNode.remainingSplits) > 1:
                self.createBranches(currentNode)        
             else:
                 #make node a terminal ndoe if stopping criterion is reached. 
@@ -249,8 +265,13 @@ class DecisionTree:
         """
         method to get the node with the most people in it. 
         
-        @params:
+        Parameters
+        ----------
             node -> node in which we go through the branch lenghts.
+            
+        Returns
+        -------
+            keyWithMostPeople : dictionnary key that has the most people
         """
         keyWithMostPeople = ""
         length = 0
@@ -291,6 +312,23 @@ class DecisionTree:
                     3,2 -> measure the gini at each branch and add them up. 
                     
                 4. return gini for this covariate. 
+                
+            
+            Parameters
+            ----------
+                covariate : the covariate on which we will get the gini
+                
+                NumberOfDivisions : the number of divisions that we will try for a continuous covariate 
+                    to find the best split within the continuous variable. 
+                    
+            Returns
+            -------
+                if continuous :
+                    bestSplit : List
+                        [best value for split, gini given by this split]
+                else if categorical
+                    giniIndex : int
+                        gini given by the categories created by the split. 
         """
         
         type = self.dataTypeClassifier[covariate]
@@ -377,7 +415,7 @@ class DecisionTree:
                 if(member[covariate] == "?"):
                     branchWithMostMembers = self.getBranchWithMostElements(branches)
                     branches[branchWithMostMembers][index] = member[self.attrToPredict]
-                else :
+                else:
                     branches[member[covariate]][index] = member[self.attrToPredict]
             
                 
@@ -399,8 +437,13 @@ class DecisionTree:
         Get the branch with the most element
         This method is only used for the measurement of the best possible split.
         
-        @params:
+        Parameters
+        ----------
             dictBranch -> dictionnary at banch
+            
+          Returns
+          -------
+              keyWithMostElements : dictionnary key that has the most elements
         """
         keyWithMostElements = ""
         numberOfElements = 0;
@@ -423,11 +466,17 @@ class DecisionTree:
         It is a weighted index and so we multiply it with the length of the population
         sample at the node. 
         
-        @params:
+        Parameters
+        ----------
             population -> population dictionnary {index , value of attr we are trying to predict}
             used to get the gini index. 
             
             numberOfPeopleAtNode -> the length of the population
+        
+        Returns
+        -------
+            gini : int
+                the value of the gini at one node. 
         """
         peopleYes = 0;
         for key in population:
@@ -452,10 +501,16 @@ class DecisionTree:
         reduced Remaining split quantity is set at 80% of the available remainingSplits
         can be changed
         
-        @params:
+        Parameters
+        ----------
+        
             node -> node from which we want to get the best split
             
             percentage -> ammount of splits we want to keep from the remaining Splits
+            
+        Returns
+        -------
+            the dictionary with the best split of a node. 
         """
         
         #list that will contain ginis
@@ -506,6 +561,7 @@ class DecisionTree:
         
         node.remainingSplits.remove(covariate)
         node.split = {covariate : giniWithCovariate[covariate]}
+        
         node.bestCovariate = covariate
 
         return node.split

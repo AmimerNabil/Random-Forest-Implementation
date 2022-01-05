@@ -69,6 +69,29 @@ class Node:
             2. classification tree
             
                 returns the class with the msot population in it. 
+                
+        Parameters
+        ----------
+        typeOfTree : int
+            value representing the type of tree. 
+        
+        attrToPredict : String
+            string that represents the attribute to predict in the dataFrame
+        
+        dataSet : pandasDataFrame
+            dataFrame used to make the predictions. 
+        
+        Returns
+        -------
+        
+        if continuous :
+            average : int
+                average of all the individuals at the node.
+                
+        else categorical :
+            keyWithTheBiggestAppearence : key
+                key that has the most appearence. 
+        
         """
         
         #regression
@@ -92,8 +115,9 @@ class Node:
             for member in self.populationAtNode:
                 majorityDict[dataSet.loc[member][attrToPredict]] += 1
             
+            keyWithTheBiggestAppearence = max(majorityDict, key=majorityDict.get)
             
-            return max(majorityDict, key=majorityDict.get)
+            return keyWithTheBiggestAppearence
         
         
         

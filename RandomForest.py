@@ -30,25 +30,14 @@ class RandomForest:
     
     """
 
-    def __init__(self, pandasDataFrame, numberOfTrees, attrToPredict , trainingProportion=0.66):        
+    def __init__(self, pandasDataFrame, DTC, numberOfTrees, attrToPredict , trainingProportion=0.66):        
         
         self.numberOfTrees = numberOfTrees
         self.dataSet = pandasDataFrame
         self.trees = []
         self.attrToPredict = attrToPredict
         self.trainingProportion = trainingProportion
-        
-        
-        #a list which contains the type of attribute present in our dataframe. 
-        '''
-            this list only contains whether a columns/covariate
-            contains categorical or continous variables
-            0 : categorical || 1 : continuous
-        '''
-        self.dataTypeClassifier = {}
-        
-        #immediatly fill the datatype Classifier
-        self.defineTypeForEveryAttr()
+        self.dataTypeClassifier = DTC
         
         self.typeOfTree = self.dataTypeClassifier[attrToPredict]
         
@@ -57,12 +46,69 @@ class RandomForest:
         
     
     def createRandomForestTrees(self):
+        """
+        Creates the trees of the randomForest. 
+        parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None
+        
+        """
         for i in range(self.numberOfTrees):
             self.trees.append(DecisionTree(self.dataSet, self.dataTypeClassifier,
                                     self.attrToPredict, self.trainingProportion))
             print("tree " + str(i) + " created!")
     
+    
+    def predict(self, member):
+        """
+        makes a prediction based on an indivual or an element that is not in the dataSet of the random forest.
+        (a completely new value for the forest). It makes the prediciton using all the trees in the forest as none of the trees have it 
+        in their trainset. 
+        
+        Parameters
+        ----------
+        member : pandas.Series
+            an element of a dataFrame that is in no training set or test set of any of the trees in the forest. 
+            
+
+        Returns
+        -------
+        prediction : dictionnary
+            the majority class or the average the terminal nodes. 
+
+        """
+        
+        predictions = {}
+        
+        for tree in self.trees:
+            treePrediction = tree.goThroughNodes(tree.mainNode, member)
+            predictions[tree.index] = treePrediction[self.attrToPredict]
+            print("this is tree #" + str(tree.index) + " and its prediction is " + str(treePrediction[self.attrToPredict]))
+    
+        return self.returnPrediction(predictions)
+            
+    
     def OOBprediction(self, index):
+        """
+        OOB prediction is a prediction that is done using a member of the data
+        Set that is already in the forest dataSet. However we make predictions using 
+        only the trees that have the member in their Out of bag space. (test set)
+        
+        Parameters
+        ----------
+        
+        index : the index of the individual we are trying to make a prediciton out of.
+        
+        return
+        ------
+        
+        prediction : a dictionary with the prediction and the # of trees that have the same prediction. 
+        
+        """
         predictions = {}
         member = self.dataSet.loc[index]
         
@@ -73,23 +119,19 @@ class RandomForest:
                 predictions[tree.index] = treePrediction[self.attrToPredict]
                 print("this is tree #" + str(tree.index) + " and its predictiong is " + str(treePrediction["num"]))
         
-        
-        
-        if self.typeOfTree == 0:
-            #look for majority 
-            prediction = self.getMostRepeatedElementInDict(predictions)
-            return prediction
-        else:
-            partialSum = 0
-            for key in predictions:
-                partialSum += predictions[key]
-                
-            average = partialSum/len(predictions)
-            return average
+        return self.returnPrediction(predictions)
             
         
     
     def getMostRepeatedElementInDict(self, dictionnary):
+        """
+        this method is to get the most repeated elements in a dictionary.
+       
+       Return
+       ------
+       returns the value that appears the most. 
+       
+        """
         elements = []
         for key in dictionnary:
             elements.append(dictionnary[key])
@@ -98,43 +140,34 @@ class RandomForest:
         s = c.most_common(1)[0]
         return s
             
-    
-    def defineCategoricalOrContinousCovariate(self, columnName):
+        
+    def returnPrediction(self, predictionDict):
         """
-        method that defines whether a variable is categorical or continuous.
+        returns a the final prediction based on the prediction dictionnary
         
-        keep in mind that it does so by looking at the number of possible values within
-        that category. 
+        Parameters
+        ----------
         
-        you can always change the type of variable in the dataTypeClassifier 
-        """
-        
-        #initialize a set of the data in a column
-        datasInColumns = set(self.dataSet[columnName])
-        #see if there are more than 10 different values
-        
-        #yes : continuous, no : categorical 
-        if len(datasInColumns) > 10 :
-            #continous
-            return 1
-        else:
-            #categorical
-            return 0
-        
+        predictionDict : dict
+            dictionary that contains the prediction of all trees involved. 
             
-
-    def defineTypeForEveryAttr(self):
+        Returns
+        -------
+        
+        returns the prediciton that suits the type of tree.
         """
-        Simple loop to go through all the covariates in the dataSet/dataFrame and 
-        determine their type. 
-        """
-        for columns in self.dataSet:
-            type = self.defineCategoricalOrContinousCovariate(columns)
-            self.dataTypeClassifier[columns] = type 
-    
+        if self.typeOfTree == 0:
+            #look for majority 
+            prediction = self.getMostRepeatedElementInDict(predictionDict)
+            return prediction
         
-        
-        
+        else:
+            partialSum = 0
+            for key in predictionDict:
+                partialSum += predictionDict[key]
+                
+            average = partialSum/len(predictionDict)
+            return average
         
         
         
