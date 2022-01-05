@@ -71,13 +71,8 @@ class DecisionTree:
     
     def goThroughNodes(self, node, member):
         """
-            This method is used to make a prediction given the index of an individual. 
-            If given the index of a member of the training set, it will give the right 
-            value as the model was created with it. 
+            Method used to retrieve a prediction given a member with all the attributes studied to make the model. 
             
-            However giving it the index value of a member in the test set (out of bag)
-            will give you a prediction of his state. We can then compare the actual value 
-            given and the prediction to measure the accuracy of our decision tree. 
        
             #params :
                 node -> current node where we test its split in search for the terminal node.
@@ -154,7 +149,7 @@ class DecisionTree:
         It is a recursive function and the stopping criterion used is 
         the size of the population in the node. 
         
-        -> if more than 30, populate branches
+        -> if more than 10% of mainNode population, populate branches
         
         -> else stop here and make this a terminal node. 
         
@@ -250,6 +245,7 @@ class DecisionTree:
             
             #verification of the stopping criterion.
             minPopulation = int(StoppingCriterionPopulation*len(self.mainNode.populationAtNode))
+           
             if len(currentNode.populationAtNode) >= minPopulation and len(currentNode.remainingSplits) > 1:
                self.createBranches(currentNode)        
             else:

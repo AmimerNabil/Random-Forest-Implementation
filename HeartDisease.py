@@ -13,7 +13,7 @@ start = time.time()
 
 
 #creation of the pandas dataFrame
-dataFrame = pd.read_csv("processed.cleveland.data")
+dataFrame = pd.read_csv("DataSets/processed.cleveland.data")
 
 #in this context, it is useless for us to have the values 2,3,4 for the "num"
 #attributes. replace all these values by 1.
@@ -41,7 +41,7 @@ member = dataFrameTest.loc[randomIndex]
 
 
 #creation of the random forest with 50 trees only. 
-rf = RF.RandomForest(dataFrameTrain, dataTypeClassifier, 1, "num")    
+rf = RF.RandomForest(dataFrameTrain, dataTypeClassifier, 10, "num")    
 prediction = rf.predict(member)
 
 end = time.time()

@@ -65,7 +65,8 @@ class RandomForest:
                                     self.attrToPredict, self.trainingProportion))
             print("tree " + str(i) + " created!")
             
-        print("<------ Random Forest Created! ------>")
+        print("<------ Random Forest Created! ------>\n")
+    
     
     def predict(self, member):
         """
