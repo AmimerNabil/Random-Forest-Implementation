@@ -1,4 +1,4 @@
-# Random Forest Classifier Implementation 🌲
+# Random Forest Implementation 🌲
 
 
 
