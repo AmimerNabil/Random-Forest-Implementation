@@ -46,13 +46,12 @@ class DecisionTree:
         self.trainingIndexList = random.choices(self.indexList, k = self.trainingQty) # in bag indexes
         self.testIndexList = list(set(self.indexList).difference(set(self.trainingIndexList))) # out of bag indexes
         
-       
+        #for interpretation
         self.testIndexList.sort()
         self.trainingIndexList.sort()
         
         #reference to the dataTypeClassifier in main. 
         self.dataTypeClassifier = DTC
-        
         
         #this is the type of tree depending on the attr we are trying to predict. 
         self.typeOfTree = self.dataTypeClassifier[self.attrToPredict]
@@ -251,7 +250,6 @@ class DecisionTree:
             
             #verification of the stopping criterion.
             minPopulation = int(StoppingCriterionPopulation*len(self.mainNode.populationAtNode))
-            print(minPopulation)
             if len(currentNode.populationAtNode) >= minPopulation and len(currentNode.remainingSplits) > 1:
                self.createBranches(currentNode)        
             else:

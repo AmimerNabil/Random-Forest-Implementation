@@ -6,45 +6,11 @@ Created on Tue Jan  4 19:26:42 2022
 """
 
 import pandas as pd
-from RandomForest import RandomForest
+import RandomForest as RF
 import random
 import time
 
 start = time.time()
-
-def defineCategoricalOrContinousCovariate(columnName, dataSet):
-    """
-    method that defines whether a variable is categorical or continuous.
-    
-    keep in mind that it does so by looking at the number of possible values within
-    that category. 
-    
-    you can always change the type of variable in the dataTypeClassifier 
-    """
-    
-    #initialize a set of the data in a column
-    datasInColumns = set(dataSet[columnName])
-    #see if there are more than 10 different values
-    
-    #yes : continuous, no : categorical 
-    if len(datasInColumns) > 10 :
-        #continous
-        return 1
-    else:
-        #categorical
-        return 0
-    
-        
-
-def defineTypeForEveryAttr(dataSet, dataTypeClassifier):
-    """
-    Simple loop to go through all the covariates in the dataSet/dataFrame and 
-    determine their type. 
-    """
-    for columns in dataSet:
-        type = defineCategoricalOrContinousCovariate(columns, dataFrame)
-        dataTypeClassifier[columns] = type 
-
 
 #creation of the pandas dataFrame
 dataFrame = pd.read_csv("abalone.data")
@@ -58,7 +24,7 @@ dataFrame = pd.read_csv("abalone.data")
 dataTypeClassifier = {}
 
 #immediatly fill the datatype Classifier
-defineTypeForEveryAttr(dataFrame, dataTypeClassifier)
+RF.defineDataTypeClassifier(dataFrame, dataTypeClassifier)
 
 #manually change "rings to categorical
 dataTypeClassifier["rings"] = 0
@@ -75,12 +41,8 @@ randomIndex = random.choice(dataFrameTest.index)
 member = dataFrameTest.loc[randomIndex]
 
 #creation of the random forest with 50 trees only. 
-rf = RandomForest(dataFrameTrain, dataTypeClassifier, 50, "rings")    
-
-#print the test results
-print(randomIndex)
-print(dataFrame.loc[randomIndex])
-print(rf.predict(member))
+rf = RF.RandomForest(dataFrameTrain, dataTypeClassifier, 50, "rings")    
+rf.predict(member)
 end = time.time()
 
 #print compilation time. 

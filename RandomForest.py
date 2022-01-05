@@ -57,11 +57,15 @@ class RandomForest:
         None
         
         """
+        print("<------ Creation of the random forest ------>")
+        
+        print("making the trees...")
         for i in range(self.numberOfTrees):
             self.trees.append(DecisionTree(self.dataSet, self.dataTypeClassifier,
                                     self.attrToPredict, self.trainingProportion))
             print("tree " + str(i) + " created!")
-    
+            
+        print("<------ Random Forest Created! ------>")
     
     def predict(self, member):
         """
@@ -82,14 +86,27 @@ class RandomForest:
 
         """
         
+        
+        print("<----- begining of a prediction ----->")
+        
         predictions = {}
         
+        print("\t\tgoing through the trees...")
         for tree in self.trees:
             treePrediction = tree.goThroughNodes(tree.mainNode, member)
             predictions[tree.index] = treePrediction[self.attrToPredict]
             print("this is tree #" + str(tree.index) + " and its prediction is " + str(treePrediction[self.attrToPredict]))
     
-        return self.returnPrediction(predictions)
+    
+        
+        finalPrediction = self.returnPrediction(predictions)
+        
+        print(" <-------- ACTUAL MEMBER AND ITS ATTRIBUTES--------->")
+        print(member)
+        print(" <-------- PREDICTION --------->")
+        print("prediction for " + self.attrToPredict + " = " + str(finalPrediction))
+        print("<-------- end --------->")
+        return finalPrediction
             
     
     def OOBprediction(self, index):
@@ -159,7 +176,7 @@ class RandomForest:
         if self.typeOfTree == 0:
             #look for majority 
             prediction = self.getMostRepeatedElementInDict(predictionDict)
-            return prediction
+            return prediction[0]
         
         else:
             partialSum = 0
@@ -171,5 +188,37 @@ class RandomForest:
         
         
         
+def defineCategoricalOrContinousCovariate(columnName, dataSet):
+    """
+    method that defines whether a variable is categorical or continuous.
+    
+    keep in mind that it does so by looking at the number of possible values within
+    that category. 
+    
+    you can always change the type of variable in the dataTypeClassifier 
+    """
+    
+    #initialize a set of the data in a column
+    datasInColumns = set(dataSet[columnName])
+    #see if there are more than 10 different values
+    
+    #yes : continuous, no : categorical 
+    if len(datasInColumns) > 10 :
+        #continous
+        return 1
+    else:
+        #categorical
+        return 0
+    
         
+
+def defineDataTypeClassifier(dataFrame, dataTypeClassifier):
+    """
+    Simple loop to go through all the covariates in the dataSet/dataFrame and 
+    determine their type. 
+    """
+    for columns in dataFrame:
+        type = defineCategoricalOrContinousCovariate(columns, dataFrame)
+        dataTypeClassifier[columns] = type 
+   
         
