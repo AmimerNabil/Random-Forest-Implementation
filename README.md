@@ -3,10 +3,12 @@
 ### Description ###
 Hello to everyone! This project is a simple implementation of a Random forest from scratch using python. The goal of this project is to make it from scratch in order to understand the backdoor of this  machine learning tool. 
 
-I got interested in this subject right after my first class of probability and statistics (fall 2021) and I am still fresh to the subject.
+I got interested in this subject right after my first class of probability and statistics (fall 2021) and I am still fresh to the subject. 
 
 ### Random Forests ###
-Random Forests are a machine learning tool used for both classification and regression problems. They are currently unexcelled in accuracy among current algorithms.  This forest is built using many classification tree which helps saves us from the task of pruning each tree. 
+Random Forests are a machine learning tool used for both classification and regression problems. They are currently unexcelled in accuracy among current algorithms.  Single Decision trees lack flexibility and pose some overfitting issues. When designing the decisions trees, we have to define a stopping criterion and the amount of pruning to be done. Too much pruning and your model won't fit the training set that we feed it. Not enough pruning and the model will overfit the data increasing its variance and affecting its efficiency. 
+
+Random forests are a way to fix this issue...by creating many large trees (with no prunning) and combining them, we greatly enhance the performence of the prediction model. On the downside, it is very hard to interpret many large trees. 
 
 for more information and details on RF : [Random Forest Documentation](https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm)
 
@@ -107,5 +109,3 @@ in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
-
