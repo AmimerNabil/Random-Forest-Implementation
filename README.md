@@ -3,7 +3,7 @@
 ### Description ###
 Hello to everyone! This project is a simple implementation of a Random forest from scratch using python. The goal of this project is to make it from scratch in order to understand the backdoor of this  machine learning tool. 
 
-I got interested in this subject right after my first class of probability and statistics (fall 2021) and I am still fresh to the subject. However after viewing the 
+I got interested in this subject right after my first class of probability and statistics (fall 2021) and I am still fresh to the subject.
 
 ### Random Forests ###
 Random Forests are a machine learning tool used for both classification and regression problems. They are currently unexcelled in accuracy among current algorithms.  This forest is built using many classification tree which helps saves us from the task of pruning each tree. 
