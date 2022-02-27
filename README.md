@@ -98,7 +98,7 @@ rf.predict(member)
 * implement visual tools to help decoding Single Decision trees. 
 
 
-### Liscence  : 
+### Licence  : 
 MIT License
 
 Copyright (c) [2022] [Nabil Amimer]
